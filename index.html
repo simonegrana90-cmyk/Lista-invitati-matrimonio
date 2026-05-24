@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💍 Lista Ospiti — Simone & Bridget</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FAF7F2;
+    --warm: #F0EAE0;
+    --gold: #C9A96E;
+    --gold-light: #E8D5B0;
+    --ink: #1C1A17;
+    --muted: #7A7060;
+    --red: #C0392B;
+    --green: #27AE60;
+    --border: #DDD5C8;
+    --shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 32px 40px 24px;
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 20px; flex-wrap: wrap;
+  }
+  header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem; font-weight: 400; letter-spacing: 0.04em;
+  }
+  header h1 span { color: var(--gold); }
+  .header-counts {
+    display: flex; gap: 24px; align-items: center;
+  }
+  .hcount {
+    text-align: center;
+  }
+  .hcount-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 600; color: var(--gold);
+    line-height: 1;
+  }
+  .hcount-label { font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    background: var(--warm);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 40px;
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  }
+  .toolbar input {
+    padding: 8px 14px; border: 1px solid var(--border);
+    border-radius: 6px; background: white; font-family: inherit;
+    font-size: 0.85rem; width: 220px;
+    outline: none;
+  }
+  .toolbar input:focus { border-color: var(--gold); }
+  .btn {
+    padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border);
+    background: white; font-family: inherit; font-size: 0.82rem;
+    cursor: pointer; color: var(--ink); transition: all 0.15s;
+  }
+  .btn:hover { background: var(--gold-light); border-color: var(--gold); }
+  .btn.primary { background: var(--ink); color: white; border-color: var(--ink); }
+  .btn.primary:hover { background: #333; }
+  .spacer { flex: 1; }
+
+  /* ── MAIN ── */
+  main { padding: 32px 40px; max-width: 1100px; margin: 0 auto; }
+
+  /* ── GRUPPO ── */
+  .gruppo {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .gruppo.hidden { display: none; }
+
+  .gruppo-header {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    border-left: 4px solid var(--gold);
+    background: var(--warm);
+    user-select: none;
+  }
+  .gruppo-header:hover { background: var(--gold-light); }
+  .gruppo-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem; font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tavolo-badge {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem; font-weight: 500;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tavolo-input {
+    width: 60px; padding: 3px 6px;
+    border: 1px solid var(--border); border-radius: 4px;
+    font-size: 0.82rem; text-align: center;
+    font-family: inherit; background: white;
+  }
+  .tavolo-input:focus { outline: none; border-color: var(--gold); }
+  .count-pills { display: flex; gap: 6px; }
+  .pill {
+    font-size: 0.72rem; padding: 2px 8px;
+    border-radius: 20px; font-weight: 500;
+  }
+  .pill.adulti { background: #EBF5FB; color: #1A6699; }
+  .pill.bambini { background: #FEF9E7; color: #B7950B; }
+  .pill.lato-sposo { background: #EAF4EC; color: #1E7A3A; }
+  .pill.lato-sposa { background: #FDEEF1; color: #A93226; }
+  .toggle-btn {
+    font-size: 0.9rem; color: var(--muted);
+    background: none; border: none; cursor: pointer;
+    padding: 2px 6px; border-radius: 4px;
+    transition: transform 0.2s;
+  }
+  .toggle-btn.collapsed { transform: rotate(-90deg); }
+
+  /* ── PERSONE ── */
+  .persone {
+    padding: 0 16px 12px;
+  }
+  .persone.collapsed { display: none; }
+
+  .persona {
+    display: grid;
+    grid-template-columns: 24px 1fr 110px 80px 70px 70px 70px 80px;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 4px;
+    border-bottom: 1px dashed var(--border);
+    font-size: 0.85rem;
+  }
+  .persona:last-child { border-bottom: none; }
+  .persona.bambino { color: #7A6020; font-style: italic; }
+  .persona.sposi .nome-display { font-weight: 600; font-size: 0.95rem; }
+
+  .tree-sym { color: var(--muted); font-family: monospace; font-size: 0.9rem; white-space: pre; }
+  .nome-display { display: flex; align-items: center; gap: 6px; }
+  .nome-text { font-weight: 500; }
+  .cognome-text { color: var(--muted); font-weight: 400; }
+  .baby-icon { font-size: 0.8rem; }
+
+  .persona input[type=text], .persona select {
+    width: 100%; padding: 3px 6px;
+    border: 1px solid transparent; border-radius: 4px;
+    font-family: inherit; font-size: 0.82rem;
+    background: transparent; color: var(--ink);
+    transition: border 0.15s;
+  }
+  .persona input[type=text]:hover, .persona select:hover { border-color: var(--border); background: white; }
+  .persona input[type=text]:focus, .persona select:focus { border-color: var(--gold); background: white; outline: none; }
+
+  .tag-conf {
+    font-size: 0.72rem; padding: 2px 7px; border-radius: 10px; font-weight: 500;
+    display: inline-block;
+  }
+  .tag-conf.si { background: #D5F5E3; color: #1E8449; }
+  .tag-conf.no { background: #FADBD8; color: #922B21; }
+  .tag-conf.attesa { background: #FEF9E7; color: #9A7D0A; }
+
+  .allerg-dot {
+    display: inline-block; width: 8px; height: 8px;
+    border-radius: 50%; background: var(--red); margin: 0 1px;
+    cursor: help;
+  }
+  .note-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 0.8rem; color: var(--muted); padding: 2px 4px;
+  }
+  .note-btn:hover { color: var(--gold); }
+
+  .col-header {
+    display: grid;
+    grid-template-columns: 24px 1fr 110px 80px 70px 70px 70px 80px;
+    gap: 8px;
+    padding: 8px 4px 4px;
+    font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    margin-top: 8px;
+  }
+
+  /* ── ADD PERSON ── */
+  .add-persona-row {
+    display: flex; gap: 8px; align-items: center;
+    padding: 8px 4px 4px;
+    border-top: 1px dashed var(--border);
+    margin-top: 4px;
+  }
+  .add-persona-row input, .add-persona-row select {
+    padding: 5px 8px; border: 1px solid var(--border);
+    border-radius: 5px; font-family: inherit; font-size: 0.82rem;
+    background: white;
+  }
+  .add-persona-row input:focus, .add-persona-row select:focus {
+    outline: none; border-color: var(--gold);
+  }
+  .btn-add-p {
+    padding: 5px 12px; background: var(--ink); color: white;
+    border: none; border-radius: 5px; cursor: pointer;
+    font-size: 0.82rem; font-family: inherit;
+    white-space: nowrap;
+  }
+  .btn-add-p:hover { background: #333; }
+  .btn-del {
+    background: none; border: none; cursor: pointer;
+    color: #CCC; font-size: 1rem; padding: 0 4px;
+    line-height: 1;
+  }
+  .btn-del:hover { color: var(--red); }
+
+  /* ── ADD GRUPPO ── */
+  #add-gruppo-form {
+    background: white; border: 1px dashed var(--gold);
+    border-radius: 10px; padding: 20px 24px;
+    margin-bottom: 16px; display: none;
+  }
+  #add-gruppo-form.open { display: block; }
+  #add-gruppo-form h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem; margin-bottom: 12px;
+  }
+  #add-gruppo-form .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  #add-gruppo-form input, #add-gruppo-form select {
+    padding: 7px 10px; border: 1px solid var(--border);
+    border-radius: 6px; font-family: inherit; font-size: 0.85rem;
+  }
+  #add-gruppo-form input:focus, #add-gruppo-form select:focus {
+    outline: none; border-color: var(--gold);
+  }
+
+  /* ── MODAL NOTE ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white; border-radius: 10px;
+    padding: 24px 28px; width: 420px; max-width: 95vw;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+  }
+  .modal h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; margin-bottom: 12px; }
+  .modal textarea {
+    width: 100%; height: 100px; padding: 10px;
+    border: 1px solid var(--border); border-radius: 6px;
+    font-family: inherit; font-size: 0.88rem; resize: vertical;
+  }
+  .modal textarea:focus { outline: none; border-color: var(--gold); }
+  .modal-btns { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end; }
+
+  /* ── ALLERG MODAL ── */
+  .allerg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+  .allerg-item { display: flex; align-items: center; gap: 6px; font-size: 0.88rem; }
+  .allerg-item input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--gold); }
+
+  /* ── STAMPA ── */
+  @media print {
+    header, .toolbar, .add-persona-row, .btn-del, .toggle-btn,
+    .note-btn, #add-gruppo-form, .btn { display: none !important; }
+    .persone.collapsed { display: block !important; }
+    .gruppo { box-shadow: none; break-inside: avoid; }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    header, .toolbar, main { padding-left: 16px; padding-right: 16px; }
+    .persona { grid-template-columns: 20px 1fr auto; }
+    .persona > *:nth-child(n+4) { display: none; }
+    .col-header > *:nth-child(n+4) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>💍 <span>Simone & Bridget</span> — Lista Ospiti</h1>
+  <div class="header-counts">
+    <div class="hcount"><div class="hcount-num" id="tot-gruppi">0</div><div class="hcount-label">Nuclei</div></div>
+    <div class="hcount"><div class="hcount-num" id="tot-adulti">0</div><div class="hcount-label">Adulti</div></div>
+    <div class="hcount"><div class="hcount-num" id="tot-bambini">0</div><div class="hcount-label">Bambini</div></div>
+    <div class="hcount"><div class="hcount-num" id="tot-tot">0</div><div class="hcount-label">Totale</div></div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <input type="text" id="search" placeholder="🔍  Cerca nome, cognome, ruolo…" oninput="filterGruppi()">
+  <select onchange="filterLato(this.value)" style="padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:0.82rem;background:white;">
+    <option value="">Tutti i lati</option>
+    <option value="Sposo">Lato Sposo</option>
+    <option value="Sposa">Lato Sposa</option>
+  </select>
+  <div class="spacer"></div>
+  <button class="btn" onclick="espandiTutti()">Espandi tutti</button>
+  <button class="btn" onclick="collassaTutti()">Collassa tutti</button>
+  <button class="btn primary" onclick="toggleAddGruppo()">+ Nuovo nucleo</button>
+  <span id="sync-status" style="font-size:0.8rem;color:var(--gold);min-width:120px;text-align:right;">⏳ Caricamento…</span>
+  <button class="btn" onclick="window.print()">🖨 Stampa</button>
+</div>
+
+<main>
+  <div id="add-gruppo-form">
+    <h3>Aggiungi nuovo nucleo</h3>
+    <div class="row">
+      <input type="text" id="new-nome-gruppo" placeholder="Nome nucleo (es. Famiglia Rossi)" style="flex:2;min-width:200px">
+      <select id="new-lato" style="min-width:120px">
+        <option value="Sposo">Lato Sposo</option>
+        <option value="Sposa">Lato Sposa</option>
+        <option value="Entrambi">Entrambi</option>
+      </select>
+      <input type="text" id="new-p-nome" placeholder="Nome prima persona" style="flex:1;min-width:140px">
+      <input type="text" id="new-p-cognome" placeholder="Cognome" style="flex:1;min-width:120px">
+      <select id="new-p-ruolo" style="min-width:130px">
+        <option>Amico</option><option>Amica</option><option>Testimone</option>
+        <option>Fratello</option><option>Sorella</option><option>Zio</option><option>Zia</option>
+        <option>Cugino</option><option>Cugina</option><option>Padre</option><option>Madre</option>
+        <option>Nonno</option><option>Nonna</option><option>Sposo</option><option>Sposa</option><option>Altro</option>
+      </select>
+      <button class="btn primary" onclick="aggiungiGruppo()">Aggiungi</button>
+      <button class="btn" onclick="toggleAddGruppo()">Annulla</button>
+    </div>
+  </div>
+
+  <div id="gruppi-container"></div>
+</main>
+
+<!-- MODAL NOTE -->
+<div class="modal-overlay" id="modal-note">
+  <div class="modal">
+    <h3>📝 Note</h3>
+    <textarea id="modal-note-text" placeholder="Scrivi qui le note…"></textarea>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal()">Annulla</button>
+      <button class="btn primary" onclick="saveNote()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ALLERGENI -->
+<div class="modal-overlay" id="modal-allerg">
+  <div class="modal">
+    <h3>⚠️ Allergeni & Diete</h3>
+    <div class="allerg-grid">
+      <label class="allerg-item"><input type="checkbox" id="a-veg"> Vegetariano</label>
+      <label class="allerg-item"><input type="checkbox" id="a-vegan"> Vegano</label>
+      <label class="allerg-item"><input type="checkbox" id="a-glut"> Glutine</label>
+      <label class="allerg-item"><input type="checkbox" id="a-latt"> Lattosio</label>
+      <label class="allerg-item"><input type="checkbox" id="a-fsecca"> Frutta Secca</label>
+      <label class="allerg-item"><input type="checkbox" id="a-crost"> Crostacei</label>
+    </div>
+    <input type="text" id="a-altri" placeholder="Altri allergeni (testo libero)" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:5px;font-family:inherit;font-size:0.85rem;margin-top:6px;">
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModalAllerg()">Annulla</button>
+      <button class="btn primary" onclick="saveAllerg()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// DATI
+// Struttura: gruppoId, nomeGruppo, lato, tavolo, persone[]
+// persona: { nome, cognome, ruolo, bambino, conf, allergeni{}, note }
+// ═══════════════════════════════════════════════════════════════════
+
+const RUOLI = ["Sposo","Sposa","Padre","Madre","Nonno","Nonna","Zio","Zia",
+  "Fratello","Sorella","Cugino","Cugina","Partner","Marito","Moglie",
+  "Fidanzato","Fidanzata","Figlio","Figlia","Amico","Amica","Testimone","Collega","Altro"];
+
+let DATA = [{"id":"G001","nome":"Sposi","lato":"Entrambi","tavolo":"","persone":[{"nome":"Simone","cognome":"Bani","ruolo":"Sposo","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Bridget","cognome":"Kidner","ruolo":"Sposa","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Sierra","cognome":"Soto","ruolo":"Figlia","bambino":true,"conf":"Sì","a":{},"note":"Figlia degli sposi"}]},{"id":"G002","nome":"Famiglia Kidner","lato":"Sposa","tavolo":"","persone":[{"nome":"Doreen","cognome":"Kidner","ruolo":"Madre","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Jeremy","cognome":"Kidner","ruolo":"Padre","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G003","nome":"Genitori Bani","lato":"Sposo","tavolo":"","persone":[{"nome":"Giuseppina","cognome":"Ruggeri","ruolo":"Madre","bambino":false,"conf":"Sì","a":{"veg":"No","vegan":"No","glut":"No","latt":"No","fsecca":"No","crost":"No"},"note":"Tel: 3286163149"},{"nome":"Lodovico","cognome":"Bani","ruolo":"Padre","bambino":false,"conf":"Sì","a":{"veg":"No","vegan":"No","glut":"No","latt":"No","fsecca":"No","crost":"No"},"note":"Tel: 3282875159"}]},{"id":"G004","nome":"Elia & Priyanka","lato":"Sposo","tavolo":"","persone":[{"nome":"Elia","cognome":"Bani","ruolo":"Fratello","bambino":false,"conf":"Sì","a":{"veg":"No","vegan":"No","glut":"No","latt":"No","fsecca":"No","crost":"No"},"note":""},{"nome":"Priyanka","cognome":"Bruera","ruolo":"Partner","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G005","nome":"Noemi Bani","lato":"Sposo","tavolo":"","persone":[{"nome":"Noemi","cognome":"Bani","ruolo":"Zia","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Sergio","cognome":"Gnocchi","ruolo":"Zio","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G007","nome":"Famiglia Gnocchi","lato":"Sposo","tavolo":"","persone":[{"nome":"Andrea","cognome":"Gnocchi","ruolo":"Cugino","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Shima","cognome":"Flutura","ruolo":"Partner","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Mia","cognome":"Gnocchi","ruolo":"Figlia","bambino":true,"conf":"Sì","a":{},"note":""}]},{"id":"G008","nome":"Rosa Reboldi","lato":"Sposo","tavolo":"","persone":[{"nome":"Rosa","cognome":"Reboldi","ruolo":"Zia","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Claudio","cognome":"Ruggeri","ruolo":"Zio","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G010","nome":"Paolo Ruggeri","lato":"Sposo","tavolo":"","persone":[{"nome":"Paolo","cognome":"Ruggeri","ruolo":"Cugino","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Camilla","cognome":"Lanza","ruolo":"Moglie","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G011","nome":"Angelo Ruggeri","lato":"Sposo","tavolo":"","persone":[{"nome":"Angelo","cognome":"Ruggeri","ruolo":"Cugino","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G012","nome":"Gabriella Ruggeri","lato":"Sposo","tavolo":"","persone":[{"nome":"Gabriella","cognome":"Ruggeri","ruolo":"Zia","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G013","nome":"Paolo Chiari","lato":"Sposo","tavolo":"","persone":[{"nome":"Paolo","cognome":"Chiari","ruolo":"Testimone","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G015","nome":"Marietta Croce","lato":"Sposo","tavolo":"","persone":[{"nome":"Marietta","cognome":"Croce","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Claudio","cognome":"Chiari","ruolo":"Amico","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Enrico","cognome":"Chiari","ruolo":"Amico","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G017","nome":"Luca Cominelli","lato":"Sposo","tavolo":"","persone":[{"nome":"Luca","cognome":"Cominelli","ruolo":"Testimone","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Elisa","cognome":"Zanni","ruolo":"Partner","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Riccardo","cognome":"Cominelli","ruolo":"Figlio","bambino":true,"conf":"Sì","a":{},"note":"3 anni"}]},{"id":"G018","nome":"Giuseppe Cominelli","lato":"Sposo","tavolo":"","persone":[{"nome":"Giuseppe","cognome":"Cominelli","ruolo":"Amico","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Sara","cognome":"Ferrari","ruolo":"Amico","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Elena","cognome":"Cominelli","ruolo":"Amico","bambino":false,"conf":"Sì","a":{"veg":"","vegan":"","glut":"","latt":"Sì","fsecca":"","crost":"","altri":""},"note":""}]},{"id":"G021","nome":"Paolo Borghesi","lato":"Sposo","tavolo":"","persone":[{"nome":"Paolo","cognome":"Borghesi","ruolo":"Testimone","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Ilaria","cognome":"Valseriati","ruolo":"Partner","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G022","nome":"Riccardo Lorenzon Vos","lato":"Sposo","tavolo":"","persone":[{"nome":"Riccardo","cognome":"Lorenzon Vos","ruolo":"Amico","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Anna","cognome":"Zalipyatskikh","ruolo":"Partner","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G023","nome":"Marco Pelizzari","lato":"Sposo","tavolo":"","persone":[{"nome":"Marco","cognome":"Pelizzari","ruolo":"Amico","bambino":false,"conf":"Sì","a":{"veg":"","vegan":"","glut":"","latt":"","fsecca":"","crost":"","altri":""},"note":""},{"nome":"Monica","cognome":"Tanghetti","ruolo":"Partner","bambino":false,"conf":"Sì","a":{"veg":"Sì","vegan":"Sì","glut":"Sì","latt":"Sì","fsecca":"Sì","crost":"Sì","altri":"proteine del latte, tutti i tipi di frumento (ok mais), pomodoro, melanzane, Soia, olive nere, crostacei, tonno, merluzzo, salmone, uova,no frutta solo ( fichi datteri, mela gialla, pera, melograno, cioccolato, frutta secca, per il dolce fatele un sorbetto."},"note":"quello che mangia è :\ncarne ( no frattaglie ) \npollo\nvitello\nmanzo\nmaiale\npesce\ncoda di rospo\nbranzino\ncapesante\npolpo\nricciola\nverdure tutto tranne pomodoro ,melanzane , cetriolo, spinaci, cipolle, olive nere ( quelle verdi si)\nlegumi tutti mano soia\nFrutta ( mela gialla, pera, fichi, datteri, melograna\nNo cacao\nPer le cotture usare loro usano burro ghee che ha buon gusto e non ha proteine del latte \n"}]},{"id":"G024","nome":"Alessia Roncolato","lato":"Sposo","tavolo":"","persone":[{"nome":"Alessia","cognome":"Roncolato","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G025","nome":"Davide Russo","lato":"Sposo","tavolo":"","persone":[{"nome":"Davide","cognome":"Russo","ruolo":"Amico","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Carlotta","cognome":"Marangoni","ruolo":"Partner","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G026","nome":"Francesco Crema","lato":"Sposo","tavolo":"","persone":[{"nome":"Francesco","cognome":"Crema","ruolo":"Amico","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Stefania","cognome":"Lozza","ruolo":"Partner","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G027","nome":"Maria Teresa Belotti","lato":"Sposo","tavolo":"","persone":[{"nome":"Maria Teresa","cognome":"Belotti","ruolo":"Cugina","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G028","nome":"Andrea Bellotti","lato":"Sposo","tavolo":"","persone":[{"nome":"Andrea","cognome":"Bellotti","ruolo":"Amico","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G029","nome":"Mauro Botticini","lato":"Sposo","tavolo":"","persone":[{"nome":"Mauro","cognome":"Botticini","ruolo":"Amico","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Veronica","cognome":"Belotti","ruolo":"Partner","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G030","nome":"Stefania D'Urso","lato":"Sposo","tavolo":"","persone":[{"nome":"Stefania","cognome":"D'Urso","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Mario","cognome":"Carotenuto","ruolo":"Marito","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G031","nome":"Arnaldo Palazzolo","lato":"Sposo","tavolo":"","persone":[{"nome":"Arnaldo","cognome":"Palazzolo","ruolo":"Amico","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"(moglie TBD)","cognome":"","ruolo":"Moglie","bambino":false,"conf":"In Attesa","a":{},"note":"Nome da confermare"},{"nome":"(bambino TBD)","cognome":"Palazzolo","ruolo":"Figlio","bambino":true,"conf":"In Attesa","a":{},"note":""}]},{"id":"G032","nome":"Luca Ronga","lato":"Sposo","tavolo":"","persone":[{"nome":"Luca","cognome":"Ronga","ruolo":"Amico","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Sonia","cognome":"Ronga","ruolo":"Moglie","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Anna","cognome":"Ronga","ruolo":"Figlia","bambino":true,"conf":"Sì","a":{},"note":""}]},{"id":"G033","nome":"Marco Longo","lato":"Sposo","tavolo":"","persone":[{"nome":"Marco","cognome":"Longo","ruolo":"Amico","bambino":false,"conf":"Sì","a":{"veg":"","vegan":"","glut":"","latt":"Sì","fsecca":"Sì","crost":"Sì","altri":""},"note":""}]},{"id":"G034","nome":"Marcia Osorio","lato":"Sposo","tavolo":"","persone":[{"nome":"Marcia","cognome":"Osorio","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Richard","cognome":"Douglas","ruolo":"Marito","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G035","nome":"Patrizia Piva","lato":"Sposo","tavolo":"","persone":[{"nome":"Patrizia","cognome":"Piva","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Giulio","cognome":"Beretta","ruolo":"Marito","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G036","nome":"Leon & Sarah","lato":"Sposo","tavolo":"","persone":[{"nome":"Leon","cognome":"","ruolo":"Amico","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Sarah","cognome":"","ruolo":"Partner","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"(figlia TBD)","cognome":"","ruolo":"Figlia","bambino":true,"conf":"In Attesa","a":{},"note":"Nome da confermare"}]},{"id":"G037","nome":"Famiglia Wallace","lato":"Sposa","tavolo":"","persone":[{"nome":"Rick","cognome":"Wallace","ruolo":"Zio","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Abby","cognome":"Wallace","ruolo":"Moglie","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G038","nome":"Alex Hurtur","lato":"Sposa","tavolo":"","persone":[{"nome":"Alex","cognome":"Hurtur","ruolo":"Cugina","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Neo","cognome":"Hurtur","ruolo":"Figlio","bambino":true,"conf":"Sì","a":{},"note":""}]},{"id":"G039","nome":"Georgie Hurtur","lato":"Sposa","tavolo":"","persone":[{"nome":"Georgie","cognome":"Hurtur","ruolo":"Zia","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G040","nome":"Rocco Cecere","lato":"Sposa","tavolo":"","persone":[{"nome":"Rocco","cognome":"Cecere","ruolo":"Amico","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Kerina","cognome":"","ruolo":"Moglie","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Isabella","cognome":"Cecere","ruolo":"Figlia","bambino":true,"conf":"Sì","a":{},"note":""},{"nome":"Emilia","cognome":"Cecere","ruolo":"Figlia","bambino":true,"conf":"Sì","a":{},"note":""}]},{"id":"G041","nome":"Rocco Gordillo","lato":"Sposa","tavolo":"","persone":[{"nome":"Rocco","cognome":"Gordillo","ruolo":"Amico","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Rory","cognome":"","ruolo":"Moglie","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Isabella","cognome":"Gordillo","ruolo":"Figlia","bambino":true,"conf":"Sì","a":{},"note":""},{"nome":"Allegra","cognome":"Gordillo","ruolo":"Figlia","bambino":true,"conf":"Sì","a":{},"note":""}]},{"id":"G042","nome":"Amanda Bodden","lato":"Sposa","tavolo":"","persone":[{"nome":"Amanda","cognome":"Bodden","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Marley","cognome":"Bodden","ruolo":"Figlia","bambino":true,"conf":"Sì","a":{},"note":""}]},{"id":"G043","nome":"Jennifer Stein","lato":"Sposa","tavolo":"","persone":[{"nome":"Jennifer","cognome":"Stein","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G044","nome":"Nicola Makin","lato":"Sposa","tavolo":"","persone":[{"nome":"Nicola","cognome":"Makin","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G045","nome":"Jackie","lato":"Sposa","tavolo":"","persone":[{"nome":"Jackie","cognome":"","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G046","nome":"Tammy Jennissen","lato":"Sposa","tavolo":"","persone":[{"nome":"Tammy","cognome":"Jennissen","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Jay","cognome":"","ruolo":"Partner","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G047","nome":"Nicola Hoey","lato":"Sposa","tavolo":"","persone":[{"nome":"Nicola","cognome":"Hoey","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Olly","cognome":"","ruolo":"Partner","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G048","nome":"Uma & Marc","lato":"Sposa","tavolo":"","persone":[{"nome":"Uma","cognome":"","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Marc","cognome":"","ruolo":"Marito","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G049","nome":"Charlotte Lonsdale","lato":"Sposa","tavolo":"","persone":[{"nome":"Charlotte","cognome":"Lonsdale","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"(ragazzo TBD)","cognome":"","ruolo":"Partner","bambino":false,"conf":"In Attesa","a":{},"note":"Nome da confermare"}]},{"id":"G050","nome":"Nicoletta Monachino","lato":"Sposa","tavolo":"","persone":[{"nome":"Nicoletta","cognome":"Monachino","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G051","nome":"Imogine Bexfaeld","lato":"Sposa","tavolo":"","persone":[{"nome":"Imogine","cognome":"Bexfaeld","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Jonny","cognome":"","ruolo":"Marito","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G052","nome":"Brianna Scarpetta","lato":"Sposa","tavolo":"","persone":[{"nome":"Brianna","cognome":"Scarpetta","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Rudy","cognome":"","ruolo":"Marito","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G053","nome":"Natalie Bell","lato":"Sposa","tavolo":"","persone":[{"nome":"Natalie","cognome":"Bell","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Jamie","cognome":"","ruolo":"Partner","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Leander","cognome":"Bell","ruolo":"Figlio","bambino":true,"conf":"Sì","a":{},"note":""},{"nome":"Rosie","cognome":"Bell","ruolo":"Figlia","bambino":true,"conf":"Sì","a":{},"note":""},{"nome":"Amber","cognome":"Bell","ruolo":"Figlia","bambino":true,"conf":"Sì","a":{},"note":""},{"nome":"Mia","cognome":"Bell","ruolo":"Figlia","bambino":true,"conf":"Sì","a":{},"note":""}]},{"id":"G055","nome":"Famiglia Wheeler","lato":"Sposa","tavolo":"","persone":[{"nome":"Sarah","cognome":"Wheeler","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Guy","cognome":"Wheeler","ruolo":"Marito","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Isla","cognome":"Wheeler","ruolo":"Figlia","bambino":true,"conf":"Sì","a":{},"note":""},{"nome":"Hugo","cognome":"Wheeler","ruolo":"Figlio","bambino":true,"conf":"Sì","a":{},"note":""}]},{"id":"G056","nome":"Carrie Chaloner","lato":"Sposa","tavolo":"","persone":[{"nome":"Carrie","cognome":"Chaloner","ruolo":"Amica","bambino":false,"conf":"Sì","a":{},"note":""},{"nome":"Mark","cognome":"","ruolo":"Marito","bambino":false,"conf":"Sì","a":{},"note":""}]},{"id":"G057","nome":"James Burch","lato":"Sposa","tavolo":"","persone":[{"nome":"James","cognome":"Burch","ruolo":"Amico","bambino":false,"conf":"In Attesa","a":{},"note":""}]},{"id":"G058","nome":"Rebecca Demiguel","lato":"Sposa","tavolo":"","persone":[{"nome":"Rebecca","cognome":"Demiguel","ruolo":"Amica","bambino":false,"conf":"In Attesa","a":{},"note":""},{"nome":"Victor","cognome":"","ruolo":"Marito","bambino":false,"conf":"In Attesa","a":{},"note":""}]},{"id":"G059","nome":"Kat Wild","lato":"Sposa","tavolo":"","persone":[{"nome":"Kat","cognome":"Wild","ruolo":"Amica","bambino":false,"conf":"In Attesa","a":{},"note":""},{"nome":"Michael","cognome":"","ruolo":"Marito","bambino":false,"conf":"In Attesa","a":{},"note":""}]}];
+
+// ═══════════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════════
+
+let noteTarget = null;
+let allergTarget = null;
+
+function countGruppo(g) {
+  let adulti = 0, bambini = 0;
+  g.persone.forEach(p => { if(p.bambino) bambini++; else adulti++; });
+  return { adulti, bambini };
+}
+
+function hasAllerg(a) {
+  return Object.values(a).some(v => v === "Sì" || (v && v !== "No" && typeof v === "string" && v.length > 0 && v !== "altri"));
+}
+
+function allergLabel(a) {
+  const map = {veg:"Veg",vegan:"Vegan",glut:"Glutine",latt:"Lattosio",fsecca:"F.Secca",crost:"Crostacei"};
+  return Object.entries(map).filter(([k])=>a[k]==="Sì").map(([,v])=>v).join(", ") + (a.altri ? " + "+a.altri : "");
+}
+
+function confClass(c) {
+  if(c==="Sì") return "si";
+  if(c==="No") return "no";
+  return "attesa";
+}
+
+function treeSymbol(idx, total) {
+  if(total === 1) return "";
+  if(idx === 0) return "│  ";
+  if(idx === total - 1) return "└─ ";
+  return "├─ ";
+}
+
+function renderGruppo(g, gIdx) {
+  const { adulti, bambini } = countGruppo(g);
+  const isSposi = g.id === "G001";
+  const lato = g.lato === "Sposa" ? "lato-sposa" : (g.lato === "Sposo" ? "lato-sposo" : "lato-sposo");
+  const latoLabel = g.lato === "Entrambi" ? "Entrambi" : g.lato;
+
+  const personeHtml = g.persone.map((p, pIdx) => {
+    const sym = treeSymbol(pIdx, g.persone.length);
+    const allergDot = hasAllerg(p.a) ? `<span class="allerg-dot" title="${allergLabel(p.a)}"></span>` : "";
+    const babyIcon = p.bambino ? `<span class="baby-icon">👶</span>` : "";
+    const bold = (isSposi && !p.bambino) ? "font-weight:600;font-size:0.97rem;" : "";
+    const italic = p.bambino ? "font-style:italic;color:#7A6020;" : "";
+    const ruoloOptions = RUOLI.map(r => `<option${r===p.ruolo?" selected":""}>${r}</option>`).join("");
+    const confOptions = ["Sì","No","In Attesa"].map(c=>`<option${c===p.conf?" selected":""}>${c}</option>`).join("");
+
+    return `
+    <div class="persona${p.bambino?" bambino":""}${isSposi&&!p.bambino?" sposi":""}" data-gidx="${gIdx}" data-pidx="${pIdx}">
+      <span class="tree-sym" style="color:#B0A090">${sym}</span>
+      <div class="nome-display" style="${bold}${italic}">
+        ${babyIcon}
+        <span class="nome-text">${p.nome}</span>
+        <span class="cognome-text">${p.cognome}</span>
+        ${allergDot}
+      </div>
+      <select onchange="updateField(${gIdx},${pIdx},'ruolo',this.value)" style="width:108px;padding:3px 5px;border:1px solid #E0D8CE;border-radius:4px;font-size:0.8rem;font-family:inherit;background:white;color:#333;">
+        ${ruoloOptions}
+      </select>
+      <select onchange="updateField(${gIdx},${pIdx},'conf',this.value)" style="width:78px;padding:3px 5px;border:1px solid #E0D8CE;border-radius:4px;font-size:0.8rem;font-family:inherit;background:white;color:#333;">
+        ${confOptions}
+      </select>
+      <input type="checkbox" title="Bambino/a" ${p.bambino?"checked":""} onchange="updateField(${gIdx},${pIdx},'bambino',this.checked)" style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer;">
+      <button class="note-btn" onclick="openNote(${gIdx},${pIdx})" title="${p.note||'Aggiungi nota'}">${p.note?"📝":"➕"}</button>
+      <button class="note-btn" onclick="openAllerg(${gIdx},${pIdx})" title="Allergeni">${hasAllerg(p.a)?"⚠️":"🍽"}</button>
+      <button class="btn-del" onclick="rimuoviPersona(${gIdx},${pIdx})" title="Rimuovi">×</button>
+    </div>`;
+  }).join("");
+
+  const addRowHtml = `
+    <div class="add-persona-row">
+      <input type="text" id="np-nome-${gIdx}" placeholder="Nome" style="width:120px">
+      <input type="text" id="np-cognome-${gIdx}" placeholder="Cognome" style="width:120px">
+      <select id="np-ruolo-${gIdx}">
+        ${RUOLI.map(r=>`<option>${r}</option>`).join("")}
+      </select>
+      <label style="font-size:0.8rem;display:flex;align-items:center;gap:4px;white-space:nowrap;">
+        <input type="checkbox" id="np-bambino-${gIdx}"> 👶
+      </label>
+      <button class="btn-add-p" onclick="aggiungiPersona(${gIdx})">+ Aggiungi</button>
+    </div>`;
+
+  return `
+  <div class="gruppo" id="gruppo-${gIdx}" data-lato="${g.lato}">
+    <div class="gruppo-header" onclick="toggleGruppo(${gIdx})">
+      <div class="gruppo-title">
+        🏠 ${g.nome}
+      </div>
+      <div class="tavolo-badge">
+        Tavolo:
+        <input class="tavolo-input" type="text" value="${g.tavolo||''}"
+          onclick="event.stopPropagation()"
+          onchange="DATA[${gIdx}].tavolo=this.value;updateCounts()"
+          placeholder="—">
+      </div>
+      <div class="count-pills">
+        <span class="pill adulti">👤 ${adulti} adulti</span>
+        ${bambini>0?`<span class="pill bambini">👶 ${bambini} bamb.</span>`:""}
+        <span class="pill ${lato}">${latoLabel}</span>
+      </div>
+      <button class="toggle-btn" id="toggle-${gIdx}">▼</button>
+    </div>
+    <div class="persone" id="persone-${gIdx}">
+      <div class="col-header">
+        <span></span><span>Nome · Cognome</span><span>Ruolo</span>
+        <span>Conf.</span><span>👶</span><span>Note</span><span>Allerg.</span><span></span>
+      </div>
+      ${personeHtml}
+      ${addRowHtml}
+    </div>
+  </div>`;
+}
+
+function render() {
+  const container = document.getElementById("gruppi-container");
+  container.innerHTML = DATA.map((g,i) => renderGruppo(g,i)).join("");
+  updateCounts();
+}
+
+function updateCounts() {
+  let adulti=0, bambini=0;
+  DATA.forEach(g => {
+    const c = countGruppo(g);
+    adulti += c.adulti;
+    bambini += c.bambini;
+  });
+  document.getElementById("tot-gruppi").textContent = DATA.length;
+  document.getElementById("tot-adulti").textContent = adulti;
+  document.getElementById("tot-bambini").textContent = bambini;
+  document.getElementById("tot-tot").textContent = adulti + bambini;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// AZIONI
+// ═══════════════════════════════════════════════════════════════════
+
+function toggleGruppo(gIdx) {
+  const p = document.getElementById(`persone-${gIdx}`);
+  const t = document.getElementById(`toggle-${gIdx}`);
+  p.classList.toggle("collapsed");
+  t.classList.toggle("collapsed");
+}
+
+function espandiTutti() {
+  DATA.forEach((_,i) => {
+    document.getElementById(`persone-${i}`)?.classList.remove("collapsed");
+    document.getElementById(`toggle-${i}`)?.classList.remove("collapsed");
+  });
+}
+
+function collassaTutti() {
+  DATA.forEach((_,i) => {
+    document.getElementById(`persone-${i}`)?.classList.add("collapsed");
+    document.getElementById(`toggle-${i}`)?.classList.add("collapsed");
+  });
+}
+
+function updateField(gIdx, pIdx, field, value) {
+  DATA[gIdx].persone[pIdx][field] = value;
+  // Re-render solo il gruppo interessato
+  const container = document.getElementById(`gruppo-${gIdx}`);
+  const wasCollapsed = document.getElementById(`persone-${gIdx}`)?.classList.contains("collapsed");
+  container.outerHTML = renderGruppo(DATA[gIdx], gIdx);
+  if(wasCollapsed) {
+    document.getElementById(`persone-${gIdx}`)?.classList.add("collapsed");
+    document.getElementById(`toggle-${gIdx}`)?.classList.add("collapsed");
+  }
+  updateCounts();
+}
+
+function rimuoviPersona(gIdx, pIdx) {
+  if(DATA[gIdx].persone.length === 1) {
+    if(!confirm("Rimuovere anche il nucleo?")) return;
+    DATA.splice(gIdx, 1);
+    render();
+    return;
+  }
+  DATA[gIdx].persone.splice(pIdx, 1);
+  const container = document.getElementById(`gruppo-${gIdx}`);
+  container.outerHTML = renderGruppo(DATA[gIdx], gIdx);
+  updateCounts();
+}
+
+function aggiungiPersona(gIdx) {
+  const nome = document.getElementById(`np-nome-${gIdx}`).value.trim();
+  const cognome = document.getElementById(`np-cognome-${gIdx}`).value.trim();
+  const ruolo = document.getElementById(`np-ruolo-${gIdx}`).value;
+  const bambino = document.getElementById(`np-bambino-${gIdx}`).checked;
+  if(!nome) { alert("Inserisci almeno il nome"); return; }
+  DATA[gIdx].persone.push({ nome, cognome, ruolo, bambino, conf:"Sì", a:{}, note:"" });
+  const container = document.getElementById(`gruppo-${gIdx}`);
+  container.outerHTML = renderGruppo(DATA[gIdx], gIdx);
+  updateCounts();
+}
+
+function toggleAddGruppo() {
+  document.getElementById("add-gruppo-form").classList.toggle("open");
+}
+
+function aggiungiGruppo() {
+  const nome = document.getElementById("new-nome-gruppo").value.trim();
+  const lato = document.getElementById("new-lato").value;
+  const pNome = document.getElementById("new-p-nome").value.trim();
+  const pCognome = document.getElementById("new-p-cognome").value.trim();
+  const pRuolo = document.getElementById("new-p-ruolo").value;
+  if(!nome || !pNome) { alert("Inserisci almeno il nome nucleo e la prima persona"); return; }
+  const newId = "G" + String(DATA.length + 100).padStart(3,"0");
+  DATA.push({ id:newId, nome, lato, tavolo:"",
+    persone:[{ nome:pNome, cognome:pCognome, ruolo:pRuolo, bambino:false, conf:"Sì", a:{}, note:"" }]
+  });
+  toggleAddGruppo();
+  render();
+  // scroll to bottom
+  setTimeout(()=>document.getElementById(`gruppo-${DATA.length-1}`)?.scrollIntoView({behavior:"smooth"}),100);
+}
+
+// ── Note ──
+function openNote(gIdx, pIdx) {
+  noteTarget = [gIdx, pIdx];
+  document.getElementById("modal-note-text").value = DATA[gIdx].persone[pIdx].note || "";
+  document.getElementById("modal-note").classList.add("open");
+}
+function closeModal() {
+  document.getElementById("modal-note").classList.remove("open");
+  noteTarget = null;
+}
+function saveNote() {
+  if(!noteTarget) return;
+  const [gIdx, pIdx] = noteTarget;
+  DATA[gIdx].persone[pIdx].note = document.getElementById("modal-note-text").value;
+  closeModal();
+  const container = document.getElementById(`gruppo-${gIdx}`);
+  container.outerHTML = renderGruppo(DATA[gIdx], gIdx);
+  updateCounts();
+}
+
+// ── Allergeni ──
+function openAllerg(gIdx, pIdx) {
+  allergTarget = [gIdx, pIdx];
+  const a = DATA[gIdx].persone[pIdx].a || {};
+  document.getElementById("a-veg").checked = a.veg==="Sì";
+  document.getElementById("a-vegan").checked = a.vegan==="Sì";
+  document.getElementById("a-glut").checked = a.glut==="Sì";
+  document.getElementById("a-latt").checked = a.latt==="Sì";
+  document.getElementById("a-fsecca").checked = a.fsecca==="Sì";
+  document.getElementById("a-crost").checked = a.crost==="Sì";
+  document.getElementById("a-altri").value = a.altri || "";
+  document.getElementById("modal-allerg").classList.add("open");
+}
+function closeModalAllerg() {
+  document.getElementById("modal-allerg").classList.remove("open");
+  allergTarget = null;
+}
+function saveAllerg() {
+  if(!allergTarget) return;
+  const [gIdx, pIdx] = allergTarget;
+  DATA[gIdx].persone[pIdx].a = {
+    veg: document.getElementById("a-veg").checked ? "Sì" : "",
+    vegan: document.getElementById("a-vegan").checked ? "Sì" : "",
+    glut: document.getElementById("a-glut").checked ? "Sì" : "",
+    latt: document.getElementById("a-latt").checked ? "Sì" : "",
+    fsecca: document.getElementById("a-fsecca").checked ? "Sì" : "",
+    crost: document.getElementById("a-crost").checked ? "Sì" : "",
+    altri: document.getElementById("a-altri").value,
+  };
+  closeModalAllerg();
+  const container = document.getElementById(`gruppo-${gIdx}`);
+  container.outerHTML = renderGruppo(DATA[gIdx], gIdx);
+  updateCounts();
+}
+
+// ── Cerca / Filtra ──
+function filterGruppi() {
+  const q = document.getElementById("search").value.toLowerCase();
+  DATA.forEach((g, i) => {
+    const el = document.getElementById(`gruppo-${i}`);
+    if(!el) return;
+    const text = (g.nome + g.persone.map(p=>p.nome+" "+p.cognome+" "+p.ruolo).join(" ")).toLowerCase();
+    el.classList.toggle("hidden", q.length > 0 && !text.includes(q));
+  });
+}
+
+function filterLato(lato) {
+  DATA.forEach((g, i) => {
+    const el = document.getElementById(`gruppo-${i}`);
+    if(!el) return;
+    el.classList.toggle("hidden", lato && g.lato !== lato && !(lato==="Sposo"&&g.lato==="Entrambi") && !(lato==="Sposa"&&g.lato==="Entrambi"));
+  });
+  if(!lato) filterGruppi();
+}
+
+// chiudi modali cliccando fuori
+document.querySelectorAll(".modal-overlay").forEach(o => {
+  o.addEventListener("click", e => { if(e.target===o) { closeModal(); closeModalAllerg(); } });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// SUPABASE SYNC
+// ═══════════════════════════════════════════════════════════════════
+
+const SB_URL = "https://ewnjuvqbthsadresgtct.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV3bmp1dnFidGhzYWRyZXNndGN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3NzA2MzEsImV4cCI6MjA5NDM0NjYzMX0.uSMeo37kEc41jexzV7ge7cnPklXsRtPCgt7mtKn-Oxk";
+
+let dbRowId = null;
+let saveTimer = null;
+let isSaving = false;
+
+function setSyncStatus(state) {
+  const el = document.getElementById("sync-status");
+  if(!el) return;
+  const map = { loading:"⏳ Caricamento…", ok:"☁️ Salvato", saving:"💾 Salvataggio…", error:"❌ Errore connessione" };
+  el.textContent = map[state] || "";
+  el.style.color = state==="error"?"#C0392B":state==="ok"?"#27AE60":"#C9A96E";
+}
+
+async function sbFetch(path, opts={}) {
+  const res = await fetch(SB_URL + path, {
+    ...opts,
+    headers: { "apikey":SB_KEY, "Authorization":"Bearer "+SB_KEY, "Content-Type":"application/json", "Prefer":"return=representation", ...(opts.headers||{}) }
+  });
+  if(!res.ok) throw new Error(await res.text());
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+async function loadFromDB() {
+  setSyncStatus("loading");
+  try {
+    const rows = await sbFetch("/rest/v1/ospiti?select=id,data&order=updated_at.desc&limit=1");
+    if(rows && rows.length > 0) {
+      dbRowId = rows[0].id;
+      const remote = rows[0].data;
+      if(Array.isArray(remote) && remote.length > 0) { DATA = remote; }
+      else { await saveToDB(true); }
+    } else { await saveToDB(true); }
+    render();
+    setSyncStatus("ok");
+  } catch(e) {
+    console.error("Errore caricamento:", e);
+    setSyncStatus("error");
+    render();
+  }
+}
+
+async function saveToDB(force=false) {
+  if(isSaving && !force) return;
+  isSaving = true;
+  setSyncStatus("saving");
+  try {
+    if(dbRowId) {
+      await sbFetch("/rest/v1/ospiti?id=eq."+dbRowId, { method:"PATCH", body:JSON.stringify({data:DATA, updated_at:new Date().toISOString()}) });
+    } else {
+      const rows = await sbFetch("/rest/v1/ospiti", { method:"POST", body:JSON.stringify({data:DATA}) });
+      if(rows && rows[0]) dbRowId = rows[0].id;
+    }
+    setSyncStatus("ok");
+  } catch(e) {
+    console.error("Errore salvataggio:", e);
+    setSyncStatus("error");
+  }
+  isSaving = false;
+}
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  setSyncStatus("saving");
+  saveTimer = setTimeout(() => saveToDB(), 800);
+}
+
+// Wrap tutte le funzioni che modificano DATA
+const _updateField     = updateField;
+const _rimuoviPersona  = rimuoviPersona;
+const _aggiungiPersona = aggiungiPersona;
+const _aggiungiGruppo  = aggiungiGruppo;
+const _saveNote        = saveNote;
+const _saveAllerg      = saveAllerg;
+
+updateField     = (...a) => { _updateField(...a);     scheduleSave(); };
+rimuoviPersona  = (...a) => { _rimuoviPersona(...a);  scheduleSave(); };
+aggiungiPersona = (...a) => { _aggiungiPersona(...a); scheduleSave(); };
+aggiungiGruppo  = (...a) => { _aggiungiGruppo(...a);  scheduleSave(); };
+saveNote        = (...a) => { _saveNote(...a);         scheduleSave(); };
+saveAllerg      = (...a) => { _saveAllerg(...a);       scheduleSave(); };
+
+document.addEventListener("change", e => {
+  if(e.target.classList.contains("tavolo-input")) scheduleSave();
+});
+
+// ── INIT ──
+loadFromDB();
+</script>
+</body>
+</html>
