@@ -693,15 +693,22 @@ document.querySelectorAll(".modal-overlay").forEach(o => {
 });
 
 // ═══════════════════════════════════════════════════════════════════
-// SUPABASE SYNC
+// FIREBASE FIRESTORE SYNC
 // ═══════════════════════════════════════════════════════════════════
 
-const SB_URL = "https://ewnjuvqbthsadresgtct.supabase.co";
-const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV3bmp1dnFidGhzYWRyZXNndGN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3NzA2MzEsImV4cCI6MjA5NDM0NjYzMX0.uSMeo37kEc41jexzV7ge7cnPklXsRtPCgt7mtKn-Oxk";
+const FB_CONFIG = {
+  apiKey: "AIzaSyBEUQTsKVd0q_MlU0GFKGE7PeCBQY_AXTc",
+  authDomain: "matrimonio-bani.firebaseapp.com",
+  projectId: "matrimonio-bani",
+  storageBucket: "matrimonio-bani.firebasestorage.app",
+  messagingSenderId: "180422614125",
+  appId: "1:180422614125:web:20935d9ecb09d5e18cf364"
+};
+const FB_DOC = "matrimonio/ospiti";
 
-let dbRowId = null;
 let saveTimer = null;
 let isSaving = false;
+let fbDb = null;
 
 function setSyncStatus(state) {
   const el = document.getElementById("sync-status");
@@ -711,26 +718,27 @@ function setSyncStatus(state) {
   el.style.color = state==="error"?"#C0392B":state==="ok"?"#27AE60":"#C9A96E";
 }
 
-async function sbFetch(path, opts={}) {
-  const res = await fetch(SB_URL + path, {
-    ...opts,
-    headers: { "apikey":SB_KEY, "Authorization":"Bearer "+SB_KEY, "Content-Type":"application/json", "Prefer":"return=representation", ...(opts.headers||{}) }
-  });
-  if(!res.ok) throw new Error(await res.text());
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
+async function initFirebase() {
+  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+  const { getFirestore, doc, getDoc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+  const app = initializeApp(FB_CONFIG);
+  fbDb = getFirestore(app);
+  return { doc, getDoc, setDoc };
 }
 
 async function loadFromDB() {
   setSyncStatus("loading");
   try {
-    const rows = await sbFetch("/rest/v1/ospiti?select=id,data&order=updated_at.desc&limit=1");
-    if(rows && rows.length > 0) {
-      dbRowId = rows[0].id;
-      const remote = rows[0].data;
+    const { doc, getDoc, setDoc } = await initFirebase();
+    const ref = doc(fbDb, "matrimonio", "ospiti");
+    const snap = await getDoc(ref);
+    if(snap.exists()) {
+      const remote = snap.data().data;
       if(Array.isArray(remote) && remote.length > 0) { DATA = remote; }
       else { await saveToDB(true); }
-    } else { await saveToDB(true); }
+    } else {
+      await saveToDB(true);
+    }
     render();
     setSyncStatus("ok");
   } catch(e) {
@@ -745,12 +753,9 @@ async function saveToDB(force=false) {
   isSaving = true;
   setSyncStatus("saving");
   try {
-    if(dbRowId) {
-      await sbFetch("/rest/v1/ospiti?id=eq."+dbRowId, { method:"PATCH", body:JSON.stringify({data:DATA, updated_at:new Date().toISOString()}) });
-    } else {
-      const rows = await sbFetch("/rest/v1/ospiti", { method:"POST", body:JSON.stringify({data:DATA}) });
-      if(rows && rows[0]) dbRowId = rows[0].id;
-    }
+    const { doc, setDoc } = await initFirebase();
+    const ref = doc(fbDb, "matrimonio", "ospiti");
+    await setDoc(ref, { data: DATA, updated_at: new Date().toISOString() });
     setSyncStatus("ok");
   } catch(e) {
     console.error("Errore salvataggio:", e);
